@@ -5,7 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import br.com.senai.usuariosmarketplace.util.ManipuladorDao;
+import br.com.senai.usuariosmarketplace.core.dao.util.ManipuladorDao;
+
 
 public class ManagerDb {
 	
