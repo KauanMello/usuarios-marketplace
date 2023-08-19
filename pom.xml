@@ -3,15 +3,26 @@
   <groupId>br.com.senai</groupId>
   <artifactId>usuarios-marketplace</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  
   <dependencies>
+	  
 	<dependency>
 	    <groupId>org.postgresql</groupId>
 	    <artifactId>postgresql</artifactId>
 	    <version>42.6.0</version>
 	</dependency>
+
+	<dependency>
+	    <groupId>commons-codec</groupId>
+	    <artifactId>commons-codec</artifactId>
+	    <version>1.16.0</version>
+	</dependency>
+	
   </dependencies>
+  
   <build>    
     <plugins>
+		
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -21,6 +32,7 @@
           <target>17</target>
         </configuration>
       </plugin>
+      
       <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-jar-plugin</artifactId>
@@ -35,6 +47,7 @@
 			</archive>
 		</configuration>
 	  </plugin>
+	  
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-dependency-plugin</artifactId>
@@ -55,11 +68,13 @@
 			</executions>
 		</plugin>
     </plugins>
+    
     <resources>
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
-    </resources>    
+    </resources>  
+      
   </build>
 </project>
