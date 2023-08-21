@@ -1,8 +1,10 @@
 package br.com.senai.usuariosmarketplace.core.service;
 
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
@@ -49,14 +51,32 @@ public class UsuarioService implements UsuarioServiceInterface{
 
 	@Override
 	public Usuario buscarUsuarioPor(String login) {
-		// TODO Auto-generated method stub
+		if (login != null && !login.isBlank()) {
+			return dao.buscarPor(login);
+		}
 		return null;
 	}
+	private static final String CARACTERES_PERMITIDOS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";		       
 
 	@Override
 	public String resetarSenhaPor(String login) {
-		// TODO Auto-generated method stub
-		return null;
+		Usuario usuarioEncontrado = buscarUsuarioPor(login);
+		if (usuarioEncontrado != null) {
+	        int comprimentoSenha = 6 + new Random().nextInt(16 - 6 + 1);
+	        StringBuilder senha = new StringBuilder();
+	        SecureRandom random = new SecureRandom();
+	        
+	        for (int i = 0; i < comprimentoSenha; i++) {
+	            int index = random.nextInt(CARACTERES_PERMITIDOS.length());
+	            senha.append(CARACTERES_PERMITIDOS.charAt(index));
+	        }
+	        usuarioEncontrado.setSenha(gerarHashDa(senha.toString()));
+	        dao.alterar(usuarioEncontrado);
+	        System.out.println("Senha nova gerada: " + senha.toString());
+	        return senha.toString();
+		}else {
+			throw new IllegalArgumentException("Só se pode resetar uma senha de um login já existente");
+		}
 	}
 	
 	private void validar(Usuario usuario) {
