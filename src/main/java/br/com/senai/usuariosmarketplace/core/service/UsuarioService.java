@@ -30,8 +30,21 @@ public class UsuarioService implements UsuarioServiceInterface{
 
 	@Override
 	public void atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
-		// TODO Auto-generated method stub
-		
+		Usuario usuarioEncontrado = buscarUsuarioPor(login);
+		if (usuarioEncontrado != null) {
+			boolean isSenhaIgual = gerarHashDa(senhaAntiga).equals(usuarioEncontrado.getSenha());
+			if (isSenhaIgual) {
+				usuarioEncontrado.setNome(nome);
+				usuarioEncontrado.setSenha(senhaNova);
+				validar(usuarioEncontrado);
+				dao.alterar(usuarioEncontrado);
+				System.out.println("atualizado com sucesso");
+			}else {
+				throw new IllegalArgumentException("Senha incorreta");
+			}
+		}else {
+			System.out.println("Login informado é invalido ou inexistente");
+		}
 	}
 
 	@Override
