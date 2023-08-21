@@ -49,7 +49,9 @@ public class UsuarioService implements UsuarioServiceInterface{
 
 	@Override
 	public Usuario buscarUsuarioPor(String login) {
-		// TODO Auto-generated method stub
+		if (login != null && !login.isBlank()) {
+			return dao.buscarPor(login);
+		}
 		return null;
 	}
 
