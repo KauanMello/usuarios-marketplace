@@ -11,11 +11,15 @@ import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 import br.com.senai.usuariosmarketplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmarketplace.core.dao.FactoryDao;
+import br.com.senai.usuariosmarketplace.core.dao.util.SendEmail;
 import br.com.senai.usuariosmarketplace.core.domain.Usuario;
 
 public class UsuarioService implements UsuarioServiceInterface{
 	
 	private DaoUsuario dao;
+	private static final String CARACTERES_PERMITIDOS = 
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";		       
+
 	
 	public UsuarioService() {
 		this.dao = FactoryDao.getInstance().getDaoPostgresUsuario();
@@ -40,7 +44,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 				usuarioEncontrado.setSenha(senhaNova);
 				validar(usuarioEncontrado);
 				dao.alterar(usuarioEncontrado);
-				System.out.println("atualizado com sucesso");
+				notificarAlteracaoDeSenhaNo(login);
 			}else {
 				throw new IllegalArgumentException("Senha incorreta");
 			}
@@ -56,8 +60,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 		}
 		return null;
 	}
-	private static final String CARACTERES_PERMITIDOS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";		       
-
+	
 	@Override
 	public String resetarSenhaPor(String login) {
 		Usuario usuarioEncontrado = buscarUsuarioPor(login);
@@ -73,6 +76,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 	        usuarioEncontrado.setSenha(gerarHashDa(senha.toString()));
 	        dao.alterar(usuarioEncontrado);
 	        System.out.println("Senha nova gerada: " + senha.toString());
+	        notificarSenhaResetada(senha.toString());
 	        return senha.toString();
 		}else {
 			throw new IllegalArgumentException("Só se pode resetar uma senha de um login já existente");
@@ -169,6 +173,21 @@ public class UsuarioService implements UsuarioServiceInterface{
 				&& !parte.equalsIgnoreCase("dos")
 				&& !parte.equalsIgnoreCase("da")
 				&& !parte.equalsIgnoreCase("das");
+	}
+	
+	private void notificarAlteracaoDeSenhaNo(String login) {
+		if (SendEmail.isEmailAtivado()) {
+			SendEmail.enviarEmail("Atualização de login", 
+					"Ocorreu uma alteração de senha no login: " + login);
+		}
+	}
+	
+	private void notificarSenhaResetada(String senhaGerada) {
+		if (SendEmail.isEmailAtivado()) {
+			SendEmail.enviarEmail("Senha Resetada", "Sua senha foi resetada para: <b>" 
+									+  senhaGerada 
+									+ "</b> Utilize essa senha alterar a nova.");
+		}
 	}
 
 }
