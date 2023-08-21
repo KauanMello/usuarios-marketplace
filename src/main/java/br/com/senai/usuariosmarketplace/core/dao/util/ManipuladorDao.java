@@ -1,4 +1,4 @@
-package br.com.senai.usuariosmarketplace.util;
+package br.com.senai.usuariosmarketplace.core.dao.util;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
