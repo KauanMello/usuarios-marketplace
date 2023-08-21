@@ -11,7 +11,7 @@ import br.com.senai.usuariosmarketplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmarketplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmarketplace.core.domain.Usuario;
 
-public class UsuarioService {
+public class UsuarioService implements UsuarioServiceInterface{
 	
 	private DaoUsuario dao;
 	
@@ -19,7 +19,70 @@ public class UsuarioService {
 		this.dao = FactoryDao.getInstance().getDaoPostgresUsuario();
 	}
 	
-	public String gerarLoginPor(String nome) {
+	
+	@Override
+	public void criarNovo(String nome, String senha) {
+		Usuario usuario = new Usuario(null, nome, senha);
+		validar(usuario);
+		gerarLoginPor(usuario.getNome());
+		dao.inserir(usuario);
+	}
+
+	@Override
+	public void atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Usuario buscarUsuarioPor(String login) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String resetarSenhaPor(String login) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	private void validar(Usuario usuario) {
+		boolean isNomeESenhaPreenchida = fracionar(usuario.getNome()).size() > 0 
+				&& usuario.getSenha() != null;
+		
+		if (isNomeESenhaPreenchida) {
+			
+			boolean isNomeValido = usuario.getNome().length() > 5
+					&& usuario.getNome().length() < 120;
+			
+			boolean isSenhaValida = usuario.getSenha() != null 
+                    && usuario.getSenha().length() >= 6
+                    && usuario.getSenha().length() <= 15
+                    && usuario.getSenha().matches(".*\\d.*") 
+                    && usuario.getSenha().matches(".*[a-zA-Z].*"); 
+
+			if (isNomeValido) {
+				if (usuario.getLogin() == null) {
+					usuario.setLogin(gerarLoginPor(usuario.getNome()));
+				}
+			}else {
+				throw new IllegalArgumentException("O nome deve conter entre 5 e 120 caracteres");
+			}
+			
+			if (isSenhaValida) {
+				usuario.setSenha(gerarHashDa(usuario.getSenha()));
+			}else {
+				throw new IllegalArgumentException("A senha deve conter entre 6 e 15 caracteres contendo numeros e letras");
+			}
+			
+		}else {
+			throw new IllegalArgumentException("Os paramêtros nome e senha são obrigátorios");
+		}
+		
+	}
+	
+	
+	private String gerarLoginPor(String nome) {
 		List<String> partesDoNome = fracionar(removerAcendoDo(nome));
 		String loginGerado = null;
 		Usuario usuarioEncontrado = null;
@@ -42,7 +105,7 @@ public class UsuarioService {
 		return loginGerado;
 	}
 	
-	public String gerarHashDa(String senha) {
+	private String gerarHashDa(String senha) {
 		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
 	}
 	
@@ -74,5 +137,5 @@ public class UsuarioService {
 				&& !parte.equalsIgnoreCase("da")
 				&& !parte.equalsIgnoreCase("das");
 	}
-	
+
 }
