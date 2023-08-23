@@ -176,18 +176,15 @@ public class UsuarioService implements UsuarioServiceInterface{
 	}
 	
 	private void notificarAlteracaoDeSenhaNo(String login) {
-		if (SendEmail.isEmailAtivado()) {
-			SendEmail.enviarEmail("Atualização de login", 
-					"Ocorreu uma alteração de senha no login: " + login);
-		}
+		NotificadorService.enviarEmail("Atualização de login", 
+				"Ocorreu uma alteração de senha no login: " + login);
 	}
 	
+	
 	private void notificarSenhaResetada(String senhaGerada) {
-		if (SendEmail.isEmailAtivado()) {
-			SendEmail.enviarEmail("Senha Resetada", "Sua senha foi resetada para: <b>" 
-									+  senhaGerada 
-									+ "</b> Utilize essa senha alterar a nova.");
-		}
+		NotificadorService.enviarEmail("Senha Resetada", "Sua senha foi resetada para: <b>" 
+				+  senhaGerada 
+				+ "</b> Utilize essa senha alterar a nova.");
 	}
 
 }
