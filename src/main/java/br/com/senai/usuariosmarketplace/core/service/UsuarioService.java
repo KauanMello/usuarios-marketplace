@@ -4,19 +4,18 @@ import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 import br.com.senai.usuariosmarketplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmarketplace.core.dao.FactoryDao;
-import br.com.senai.usuariosmarketplace.core.dao.util.SendEmail;
 import br.com.senai.usuariosmarketplace.core.domain.Usuario;
 
 public class UsuarioService implements UsuarioServiceInterface{
 	
 	private DaoUsuario dao;
+
 	private static final String CARACTERES_PERMITIDOS = 
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";		       
 
@@ -32,6 +31,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 		validar(usuario);
 		gerarLoginPor(usuario.getNome());
 		dao.inserir(usuario);
+		System.out.println("criou");
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 	public String resetarSenhaPor(String login) {
 		Usuario usuarioEncontrado = buscarUsuarioPor(login);
 		if (usuarioEncontrado != null) {
-	        int comprimentoSenha = 6 + new Random().nextInt(16 - 6 + 1);
+	        int comprimentoSenha = 16;
 	        StringBuilder senha = new StringBuilder();
 	        SecureRandom random = new SecureRandom();
 	        
@@ -92,15 +92,19 @@ public class UsuarioService implements UsuarioServiceInterface{
 			boolean isNomeValido = usuario.getNome().length() > 5
 					&& usuario.getNome().length() < 120;
 			
-			boolean isSenhaValida = usuario.getSenha() != null 
+			boolean isSenhaValida = usuario.getSenha() != null
                     && usuario.getSenha().length() >= 6
                     && usuario.getSenha().length() <= 15
-                    && usuario.getSenha().matches(".*\\d.*") 
-                    && usuario.getSenha().matches(".*[a-zA-Z].*"); 
+                    && usuario.getSenha().matches("^(?=.*[0-9])(?=.*[a-zA-Z]).*$");
+
 
 			if (isNomeValido) {
 				if (usuario.getLogin() == null) {
-					usuario.setLogin(gerarLoginPor(usuario.getNome()));
+					if (!usuario.getSenha().contains(" ")) {
+						usuario.setLogin(gerarLoginPor(usuario.getNome()));
+					}else {
+						throw new IllegalArgumentException("Não pode haver espaços em branco na senha");
+					}
 				}
 			}else {
 				throw new IllegalArgumentException("O nome deve conter entre 5 e 120 caracteres");
@@ -122,20 +126,21 @@ public class UsuarioService implements UsuarioServiceInterface{
 	private String gerarLoginPor(String nome) {
 		List<String> partesDoNome = fracionar(removerAcendoDo(nome));
 		String loginGerado = null;
-		Usuario usuarioEncontrado = null;
 		if (!partesDoNome.isEmpty()) {
+			Usuario usuarioEncontrado = null;
 			for (int i = 1; i < partesDoNome.size(); i++) {
 					loginGerado = partesDoNome.get(0) + "." + partesDoNome.get(i);
-					usuarioEncontrado = dao.buscarPor(loginGerado);
+					usuarioEncontrado = buscarUsuarioPor(loginGerado);
 					if (usuarioEncontrado == null) {
 						return loginGerado;
 					}
 			}
-			int proximoSequencia = 0;
+			int proximoSequencia = 1;
 			String loginDisponivel = null;
 			while (usuarioEncontrado != null) {
-				loginDisponivel = loginGerado + ++proximoSequencia;
-				usuarioEncontrado = dao.buscarPor(loginDisponivel);
+				loginDisponivel = loginGerado + proximoSequencia;
+				proximoSequencia++;
+				usuarioEncontrado = buscarUsuarioPor(loginDisponivel);
 			}
 			loginGerado = loginDisponivel;
 		}
@@ -158,8 +163,10 @@ public class UsuarioService implements UsuarioServiceInterface{
 			String[] partesNome = nome.split(" ");
 			
 			for (String parte : partesNome) {
-				if (isNaoContemArtigo(parte)) {
-					nomeFracionada.add(parte.toLowerCase());
+				if (partesNome[0].length() + parte.length() < 50) {
+					if (isNaoContemArtigo(parte)) {
+						nomeFracionada.add(parte.toLowerCase());
+					}
 				}
 			}
 		}
@@ -172,7 +179,8 @@ public class UsuarioService implements UsuarioServiceInterface{
 				&& !parte.equalsIgnoreCase("e")
 				&& !parte.equalsIgnoreCase("dos")
 				&& !parte.equalsIgnoreCase("da")
-				&& !parte.equalsIgnoreCase("das");
+				&& !parte.equalsIgnoreCase("das")
+				&& !parte.equalsIgnoreCase("do");
 	}
 	
 	private void notificarAlteracaoDeSenhaNo(String login) {
