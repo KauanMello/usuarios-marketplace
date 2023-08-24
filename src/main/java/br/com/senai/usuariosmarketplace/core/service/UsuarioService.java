@@ -161,11 +161,9 @@ public class UsuarioService implements UsuarioServiceInterface{
 	
 	private List<String> fracionar(String nome){
 		List<String> nomeFracionada = new ArrayList<>();
-		
+		nome = nome.trim();
 		if (nome != null && !nome.isBlank()) {
-			
 			String[] partesNome = nome.split(" ");
-			
 			for (String parte : partesNome) {
 				if (partesNome[0].length() + parte.length() < 50) {
 					if (isNaoContemArtigo(parte)) {
