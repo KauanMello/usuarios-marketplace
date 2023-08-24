@@ -38,22 +38,31 @@ public class UsuarioService implements UsuarioServiceInterface{
 	}
 
 	@Override
-	public void atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
-		Usuario usuarioEncontrado = buscarUsuarioPor(login);
-		if (usuarioEncontrado != null) {
-			boolean isSenhaIgual = gerarHashDa(senhaAntiga).equals(usuarioEncontrado.getSenha());
-			if (isSenhaIgual) {
-				usuarioEncontrado.setNome(nome);
-				usuarioEncontrado.setSenha(senhaNova);
-				validar(usuarioEncontrado);
-				dao.alterar(usuarioEncontrado);
-				notificarAlteracaoDeSenhaNo(login);
-			}else {
-				throw new IllegalArgumentException("Senha incorreta");
-			}
-		}else {
-			System.out.println("Login informado é invalido ou inexistente");
-		}
+	public Usuario atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
+		
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório");
+		
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(senhaAntiga), "A senha é obrigatória");
+		
+		validar(nome, senhaNova);
+		
+		Usuario usuarioSalvo = buscarUsuarioPor(login);
+
+		Preconditions.checkNotNull(usuarioSalvo, "Não foi encontrado usuário vinculado ao login informado");
+	
+		boolean isSenhaValida = gerarHashDa(senhaAntiga).equals(usuarioSalvo.getSenha());
+		
+		Preconditions.checkArgument(isSenhaValida, "A senha antiga não confere");
+		
+		Preconditions.checkArgument(!senhaAntiga.equals(senhaNova), "A senha nova não pode ser igual a antiga");
+		
+		Usuario usuarioAlterado = new Usuario(login, nome, gerarHashDa(senhaNova));
+
+		dao.alterar(usuarioAlterado);
+		
+		notificarAlteracaoDeSenhaNo(login);
+		
+		return buscarUsuarioPor(login);
 	}
 
 	@Override
@@ -84,45 +93,6 @@ public class UsuarioService implements UsuarioServiceInterface{
 		}else {
 			throw new IllegalArgumentException("Só se pode resetar uma senha de um login já existente");
 		}
-	}
-	
-	private void validar(Usuario usuario) {
-		boolean isNomeESenhaPreenchida = fracionar(usuario.getNome()).size() > 0 
-				&& usuario.getSenha() != null;
-		
-		if (isNomeESenhaPreenchida) {
-			
-			boolean isNomeValido = usuario.getNome().length() > 5
-					&& usuario.getNome().length() < 120;
-			
-			boolean isSenhaValida = usuario.getSenha() != null
-                    && usuario.getSenha().length() >= 6
-                    && usuario.getSenha().length() <= 15
-                    && usuario.getSenha().matches("^(?=.*[0-9])(?=.*[a-zA-Z]).*$");
-
-
-			if (isNomeValido) {
-				if (usuario.getLogin() == null) {
-					if (!usuario.getSenha().contains(" ")) {
-						usuario.setLogin(gerarLoginPor(usuario.getNome()));
-					}else {
-						throw new IllegalArgumentException("Não pode haver espaços em branco na senha");
-					}
-				}
-			}else {
-				throw new IllegalArgumentException("O nome deve conter entre 5 e 120 caracteres");
-			}
-			
-			if (isSenhaValida) {
-				usuario.setSenha(gerarHashDa(usuario.getSenha()));
-			}else {
-				throw new IllegalArgumentException("A senha deve conter entre 6 e 15 caracteres contendo numeros e letras");
-			}
-			
-		}else {
-			throw new IllegalArgumentException("Os paramêtros nome e senha são obrigátorios");
-		}
-		
 	}
 	
 	@SuppressWarnings("deprecation")

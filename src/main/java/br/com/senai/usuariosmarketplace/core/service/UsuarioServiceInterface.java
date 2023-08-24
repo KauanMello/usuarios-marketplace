@@ -6,7 +6,7 @@ public interface UsuarioServiceInterface {
 	
 	public Usuario criarNovo(String nome, String senha);
 	
-	public void atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova);
+	public Usuario atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova);
 
 	public Usuario buscarUsuarioPor(String login);
 	
