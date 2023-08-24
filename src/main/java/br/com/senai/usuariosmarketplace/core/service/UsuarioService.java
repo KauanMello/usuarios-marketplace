@@ -8,6 +8,10 @@ import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import br.com.senai.usuariosmarketplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmarketplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmarketplace.core.domain.Usuario;
@@ -26,12 +30,11 @@ public class UsuarioService implements UsuarioServiceInterface{
 	
 	
 	@Override
-	public void criarNovo(String nome, String senha) {
-		Usuario usuario = new Usuario(null, nome, senha);
-		validar(usuario);
-		gerarLoginPor(usuario.getNome());
-		dao.inserir(usuario);
-		System.out.println("criou");
+	public Usuario criarNovo(String nome, String senha) {
+		validar(nome, senha);
+		String login = gerarLoginPor(nome);
+		dao.inserir(new Usuario(login, nome, gerarHashDa(senha)));
+		return dao.buscarPor(login);
 	}
 
 	@Override
@@ -122,6 +125,37 @@ public class UsuarioService implements UsuarioServiceInterface{
 		
 	}
 	
+	@SuppressWarnings("deprecation")
+	public void validar(String senha) {
+		boolean isSenhaValida = !Strings.isNullOrEmpty(senha)
+					&& senha.length() >= 6
+					&& senha.length() <= 15;
+	
+		Preconditions.checkArgument(isSenhaValida, 
+				"Senha é obrigatória e deve conter entre 6 e 15 caracteres");
+		
+		boolean isContemLetra = CharMatcher.inRange('a', 'z').countIn(senha.toLowerCase()) > 0;
+		boolean isContemNumero = CharMatcher.inRange('0', '9').countIn(senha) > 0;
+		boolean isContemEspaco = !CharMatcher.javaLetterOrDigit().matchesAllOf(senha);
+		
+		Preconditions.checkArgument(!isContemEspaco && isContemLetra && isContemNumero, "A senha deve ter letras e numeros");;
+
+		if (!isContemLetra || !isContemNumero || isContemEspaco) {
+			throw new IllegalArgumentException("A senha deve conter letras e números");
+		}
+	}
+	
+	public void validar(String nome, String senha) {
+		List<String> partesDoNome = fracionar(nome);
+		boolean isNomeCompleto = partesDoNome.size() > 1;
+		boolean isNomeValido = !Strings.isNullOrEmpty(nome) && isNomeCompleto
+				&& nome.length() >= 5
+				&& nome.length() <= 120;
+				
+		Preconditions.checkArgument(isNomeValido, "O nome é obrigatório e deve conter sobrenome e deve estar entre 5 e 120 caracteres");
+		validar(senha);
+	}
+	
 	
 	private String gerarLoginPor(String nome) {
 		List<String> partesDoNome = fracionar(removerAcendoDo(nome));
@@ -148,7 +182,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 	}
 	
 	private String gerarHashDa(String senha) {
-		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
+		return new DigestUtils(MessageDigestAlgorithms.SHA3_256).digestAsHex(senha);
 	}
 	
 	private String removerAcendoDo(String nome) {

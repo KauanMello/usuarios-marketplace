@@ -4,7 +4,7 @@ import br.com.senai.usuariosmarketplace.core.domain.Usuario;
 
 public interface UsuarioServiceInterface {
 	
-	public void criarNovo(String nome, String senha);
+	public Usuario criarNovo(String nome, String senha);
 	
 	public void atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova);
 
