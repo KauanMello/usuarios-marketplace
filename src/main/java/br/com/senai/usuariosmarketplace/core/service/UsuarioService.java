@@ -41,7 +41,6 @@ public class UsuarioService implements UsuarioServiceInterface{
 	public Usuario atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
 		
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório");
-		
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(senhaAntiga), "A senha é obrigatória");
 		
 		validar(nome, senhaNova);
@@ -53,7 +52,6 @@ public class UsuarioService implements UsuarioServiceInterface{
 		boolean isSenhaValida = gerarHashDa(senhaAntiga).equals(usuarioSalvo.getSenha());
 		
 		Preconditions.checkArgument(isSenhaValida, "A senha antiga não confere");
-		
 		Preconditions.checkArgument(!senhaAntiga.equals(senhaNova), "A senha nova não pode ser igual a antiga");
 		
 		Usuario usuarioAlterado = new Usuario(login, nome, gerarHashDa(senhaNova));
@@ -134,16 +132,24 @@ public class UsuarioService implements UsuarioServiceInterface{
 			Usuario usuarioEncontrado = null;
 			for (int i = 1; i < partesDoNome.size(); i++) {
 					loginGerado = partesDoNome.get(0) + "." + partesDoNome.get(i);
+
+					if (loginGerado.length() > 50) {
+						loginGerado = loginGerado.substring(0, 50);
+					}
+					
 					usuarioEncontrado = buscarUsuarioPor(loginGerado);
+					
 					if (usuarioEncontrado == null) {
 						return loginGerado;
 					}
 			}
 			int proximoSequencia = 1;
+			
 			String loginDisponivel = null;
 			while (usuarioEncontrado != null) {
 				loginDisponivel = loginGerado + proximoSequencia;
 				proximoSequencia++;
+				
 				usuarioEncontrado = buscarUsuarioPor(loginDisponivel);
 			}
 			loginGerado = loginDisponivel;
@@ -162,7 +168,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 	private List<String> fracionar(String nome){
 		List<String> nomeFracionada = new ArrayList<>();
 		nome = nome.trim();
-		if (nome != null && !nome.isBlank()) {
+		if (!Strings.isNullOrEmpty(nome)) {
 			String[] partesNome = nome.split(" ");
 			for (String parte : partesNome) {
 				if (partesNome[0].length() + parte.length() < 50) {
