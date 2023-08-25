@@ -67,10 +67,8 @@ public class UsuarioService implements UsuarioServiceInterface{
 
 	@Override
 	public Usuario buscarUsuarioPor(String login) {
-		if (login != null && !login.isBlank()) {
-			return dao.buscarPor(login);
-		}
-		return null;
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório");
+		return dao.buscarPor(login);
 	}
 	
 	@Override
