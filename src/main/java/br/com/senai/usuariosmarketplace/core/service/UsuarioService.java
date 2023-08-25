@@ -83,7 +83,7 @@ public class UsuarioService implements UsuarioServiceInterface{
 	            int index = random.nextInt(CARACTERES_PERMITIDOS.length());
 	            senha.append(CARACTERES_PERMITIDOS.charAt(index));
 	        }
-	        usuarioEncontrado.setSenha(gerarHashDa(senha.toString()));
+	        usuarioEncontrado.setSenha(gerarHashDa(senha.toString()));;
 	        dao.alterar(usuarioEncontrado);
 	        System.out.println("Senha nova gerada: " + senha.toString());
 	        notificarSenhaResetada(senha.toString());
