@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
@@ -15,21 +17,24 @@ import com.google.common.base.Strings;
 import br.com.senai.usuariosmarketplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmarketplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmarketplace.core.domain.Usuario;
+import jakarta.annotation.PostConstruct;
 
-public class UsuarioService implements UsuarioServiceInterface{
+@Service
+public class UsuarioService {
+	
+	@Autowired
+	private FactoryDao factorydao;
 	
 	private DaoUsuario dao;
 
 	private static final String CARACTERES_PERMITIDOS = 
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";		       
-
 	
-	public UsuarioService() {
-		this.dao = FactoryDao.getInstance().getDaoPostgresUsuario();
+	@PostConstruct
+	public void inicializar() {
+		this.dao = factorydao.getDaoPostgresUsuario();
 	}
 	
-	
-	@Override
 	public Usuario criarNovo(String nome, String senha) {
 		validar(nome, senha);
 		String login = gerarLoginPor(nome);
@@ -37,7 +42,6 @@ public class UsuarioService implements UsuarioServiceInterface{
 		return dao.buscarPor(login);
 	}
 
-	@Override
 	public Usuario atualizarNomeESenha(String login, String nome, String senhaAntiga, String senhaNova) {
 		
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório");
@@ -63,13 +67,11 @@ public class UsuarioService implements UsuarioServiceInterface{
 		return buscarUsuarioPor(login);
 	}
 
-	@Override
 	public Usuario buscarUsuarioPor(String login) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório");
 		return dao.buscarPor(login);
 	}
 	
-	@Override
 	public String resetarSenhaPor(String login) {
 		Usuario usuarioEncontrado = buscarUsuarioPor(login);
 		if (usuarioEncontrado != null) {
